@@ -1,0 +1,363 @@
+{
+  "name": "Google-Cloud-Run",
+  "type": "executer",
+  "exposeRoute": false,
+  "execProgram": "node",
+  "main": "app.js",
+  "imgUrl": "logo.png",
+  "version": "1.0.0",
+  "description": "Kaholo plugin for integration with Google Cloud Run API.",
+  "category": ["CONTAINERS", "COMPUTE"],
+  "settings": [
+    {
+      "name": "creds",
+      "viewName": "Service Account Credentials",
+      "type": "vault",
+      "description": "Default service account credentials",
+      "learnUrl": "https://cloud.google.com/docs/authentication/production"
+    },
+    {
+      "name": "project",
+      "viewName": "Default Project ID",
+      "type": "string",
+      "description": "The ID of the default project to send requests to.",
+      "placeholder": "my-project",
+      "learnUrl": "https://cloud.google.com/resource-manager/docs/creating-managing-projects"
+    },
+    {
+      "name": "region",
+      "viewName": "Default Region",
+      "type": "string",
+      "description": "The default region to send requests to.",
+      "placeholder": "us-central1",
+      "learnUrl": "https://cloud.google.com/compute/docs/regions-zones"
+    }
+  ],
+  "methods": [
+    {
+      "name": "deployContainerService",
+      "viewName": "Deploy Service From Container",
+      "params": [
+        {
+          "name": "creds",
+          "viewName": "Service Account Credentials",
+          "type": "vault",
+          "description": "Service account credentials",
+          "learnUrl": "https://cloud.google.com/docs/authentication/production"
+        },
+        {
+          "name": "project",
+          "viewName": "Project",
+          "type": "autocomplete",
+          "autocompleteType": "function",
+          "functionName": "listProjectsAuto",
+          "description": "Project name",
+          "placeholder": "project-name-username",
+          "learnUrl": "https://cloud.google.com/resource-manager/docs/creating-managing-projects"
+        },
+        {
+          "name": "region",
+          "viewName": "Region",
+          "type": "autocomplete",
+          "autocompleteType": "function",
+          "functionName": "listRegionsAuto",
+          "description": "The region to deploy the service in.",
+          "placeholder": "us-east1",
+          "learnUrl": "https://cloud.google.com/compute/docs/regions-zones"
+        },
+        {
+          "name": "name",
+          "viewName": "Name",
+          "type": "string",
+          "description": "Name of the new service to deploy. Service name may only start with a letter and contain up to 63 lowercase letters, numbers or hyphens.",
+          "placeholder": "my-service",
+          "learnUrl": "https://cloud.google.com/run/docs/deploying"
+        },
+        {
+          "name": "containerImageUrl",
+          "viewName": "Container Image URL",
+          "type": "string",
+          "description": "Deploy the service using one revision from an existing container image. Only supports containers from Google Container ",
+          "placeholder": "us-docker.pkg.dev/cloudrun/container/hello",
+          "learnUrl": "https://cloud.google.com/run/docs/deploying"
+        },
+        {
+          "name": "consistantCpuAllocation",
+          "viewName": "Consistant CPU Allocation",
+          "type": "boolean",
+          "description": "If true CPU for the container is always allocated. If false CPU is only allocated during request proccesing. Default value is false.",
+          "learnUrl": "https://cloud.google.com/run/pricing"
+        },
+        {
+          "name": "minInstances",
+          "viewName": "Minimum Number Of Instances",
+          "type": "string",
+          "description": "For autoscaling. Default is 0. Set to 1 to reduce cold starts.",
+          "placeholder": "0",
+          "learnUrl": "https://cloud.google.com/run/docs/configuring/min-instances"
+        },
+        {
+          "name": "maxInstances",
+          "viewName": "Minimum Number Of Instances",
+          "type": "string",
+          "description": "For autoscaling. Default is 100. Possible values are 1-1000.",
+          "placeholder": "100",
+          "learnUrl": "https://cloud.google.com/run/docs/configuring/max-instances"
+        },
+        {
+          "name": "port",
+          "viewName": "Container Port",
+          "type": "string",
+          "description": "Requests will be sent to the container on this port. Saved as $PORT env variable.",
+          "placeholder": "8080"
+        },
+        {
+          "name": "commands",
+          "viewName": "Container Entry Commands",
+          "type": "text",
+          "description": "Commands to run in the container on entry. Leave blank to use the entry point command defined in the container image. Can enter multiple values by seperating each with a new line.",
+          "placeholder": "ls",
+          "learnUrl": "https://cloud.google.com/run/docs/tutorials/gcloud"
+        },
+        {
+          "name": "args",
+          "viewName": "Container Arguments",
+          "type": "text",
+          "description": "Arguments passed to the entry point command. Can enter multiple values by seperating each with a new line.",
+          "placeholder": "-d",
+          "learnUrl": "https://cloud.google.com/run/docs/tutorials/gcloud"
+        },
+        {
+          "name": "memory",
+          "viewName": "Container Memory(in MB)",
+          "type": "string",
+          "description": "Memory to allocate to each container instance, in MB.",
+          "placeholder": "512",
+          "learnUrl": "https://cloud.google.com/run/docs/configuring/memory-limits"
+        },
+        {
+          "name": "cpuCount",
+          "viewName": "CPU Count",
+          "type": "options",
+          "description": "Number of vCPUs allocated to each container instance. Possible values are: 1/2/4.",
+          "placeholder": "1",
+          "learnUrl": "https://cloud.google.com/run/docs/configuring/cpu",
+          "options": [
+            {
+              "id": "1",
+              "name": "1"
+            },
+            {
+              "id": "2",
+              "name": "2"
+            },
+            {
+              "id": "4",
+              "name": "4"
+            }
+          ]
+        },
+        {
+          "name": "timeout",
+          "viewName": "Request Timeout(In seconds)",
+          "type": "string",
+          "description": "Time within which a response must be returned. Value must be between 1-3600. Default is 300.",
+          "placeholder": "300",
+          "learnUrl": "https://cloud.google.com/run/docs/configuring/request-timeout"
+        },
+        {
+          "name": "maxConcurrency",
+          "viewName": "Maximum Requests Per Container",
+          "type": "string",
+          "description": "The maximum number of concurrent requests that can reach each container instance. Value must be between 1-1000. Default is 80.",
+          "placeholder": "80",
+          "learnUrl": "https://cloud.google.com/run/docs/configuring/concurrency"
+        },
+        {
+          "name": "execEnv",
+          "viewName": "Execution Environment",
+          "type": "options",
+          "description": "The execution environment your container runs in. Default is first generation.",
+          "placeholder": "First Generation",
+          "learnUrl": "https://cloud.google.com/run/docs/about-execution-environments",
+          "options": [
+            {
+              "id": "gen1",
+              "name": "First Generation"
+            },
+            {
+              "id": "gen2",
+              "name": "Second Generation"
+            }
+          ]
+        },
+        {
+          "name": "envVariables",
+          "viewName": "Environment variables",
+          "type": "text",
+          "description": "Environment variables to pass to the container. Must be specified in a key=value format. Can enter multiple variables by seperating each with a new line.",
+          "placeholder": "ENV KEY1=VALUE1\nKEY2=VALUE2",
+          "learnUrl": "https://cloud.google.com/run/docs/configuring/environment-variables"
+        },
+        {
+          "name": "serviceAccount",
+          "viewName": "Service Account",
+          "type": "autocomplete",
+          "autocompleteType": "function",
+          "functionName": "listServiceAccountsAuto",
+          "description": "Identity to be used by the created revision. Must have sufficent permissions(roles) to run commands on google run and any other google services used. If not specified will use the default service account of the project.",
+          "placeholder": "service-account-1",
+          "learnUrl": "https://cloud.google.com/run/docs/securing/service-identity"
+        },
+        {
+          "name": "ingressRules",
+          "viewName": "Ingress Rules",
+          "type": "options",
+          "description": "Restrict network access to your Cloud Run service. Default is 'Allow all traffic'.",
+          "placeholder": "Allow all traffic",
+          "learnUrl": "https://cloud.google.com/run/docs/securing/ingress",
+          "options": [
+            {
+              "id": "all",
+              "name": "Allow all traffic"
+            },
+            {
+              "id": "internalAnd(Need to check!)",
+              "name": "Allow internal and from load balancing"
+            },
+            {
+              "id": "internal",
+              "name": "Allow internal traffic only"
+            }
+          ]
+        },
+        {
+          "name": "dontRequireAuthentication",
+          "viewName": "Dont Require Authentication",
+          "type": "boolean",
+          "description": "If true, allow unauthenticated invocations of the service(for creating a public API, or a website). If false, require google IAM authentication. Manage authorized users with Cloud IAM. Default value is false.",
+          "learnUrl": "https://cloud.google.com/run/docs/securing/managing-access"
+        }
+      ]
+    },
+    {
+      "name": "deleteService",
+      "viewName": "Delete Service",
+      "params": [
+        {
+          "name": "creds",
+          "viewName": "Service Account Credentials",
+          "type": "vault",
+          "description": "Service account credentials",
+          "learnUrl": "https://cloud.google.com/docs/authentication/production"
+        },
+        {
+          "name": "project",
+          "viewName": "Project",
+          "type": "autocomplete",
+          "autocompleteType": "function",
+          "functionName": "listProjectsAuto",
+          "description": "Project name",
+          "placeholder": "project-name-username",
+          "learnUrl": "https://cloud.google.com/resource-manager/docs/creating-managing-projects"
+        },
+        {
+          "name": "region",
+          "viewName": "Region",
+          "type": "autocomplete",
+          "autocompleteType": "function",
+          "functionName": "listRegionsAuto",
+          "description": "The region the service belongs to.",
+          "placeholder": "us-east1",
+          "learnUrl": "https://cloud.google.com/compute/docs/regions-zones"
+        },
+        {
+          "name": "service",
+          "viewName": "Service",
+          "type": "autocomplete",
+          "autocompleteType": "function",
+          "functionName": "listServicesAuto",
+          "description": "The service to delete.",
+          "placeholder": "my-service",
+          "learnUrl": "https://cloud.google.com/run/docs/managing/services"
+        }
+      ]
+    },
+    {
+      "name": "describeService",
+      "viewName": "Describe Service",
+      "params": [
+        {
+          "name": "creds",
+          "viewName": "Service Account Credentials",
+          "type": "vault",
+          "description": "Service account credentials",
+          "learnUrl": "https://cloud.google.com/docs/authentication/production"
+        },
+        {
+          "name": "project",
+          "viewName": "Project",
+          "type": "autocomplete",
+          "autocompleteType": "function",
+          "functionName": "listProjectsAuto",
+          "description": "Project name",
+          "placeholder": "project-name-username",
+          "learnUrl": "https://cloud.google.com/resource-manager/docs/creating-managing-projects"
+        },
+        {
+          "name": "region",
+          "viewName": "Region",
+          "type": "autocomplete",
+          "autocompleteType": "function",
+          "functionName": "listRegionsAuto",
+          "description": "The region the service belongs to.",
+          "placeholder": "us-east1",
+          "learnUrl": "https://cloud.google.com/compute/docs/regions-zones"
+        },
+        {
+          "name": "service",
+          "viewName": "Service",
+          "type": "autocomplete",
+          "autocompleteType": "function",
+          "functionName": "listServicesAuto",
+          "description": "The service to describe.",
+          "placeholder": "my-service",
+          "learnUrl": "https://cloud.google.com/run/docs/managing/services"
+        }
+      ]
+    },
+    {
+      "name": "listServices",
+      "viewName": "List Services",
+      "params": [
+        {
+          "name": "creds",
+          "viewName": "Service Account Credentials",
+          "type": "vault",
+          "description": "Service account credentials",
+          "learnUrl": "https://cloud.google.com/docs/authentication/production"
+        },
+        {
+          "name": "project",
+          "viewName": "Project",
+          "type": "autocomplete",
+          "autocompleteType": "function",
+          "functionName": "listProjectsAuto",
+          "description": "Project name",
+          "placeholder": "project-name-username",
+          "learnUrl": "https://cloud.google.com/resource-manager/docs/creating-managing-projects"
+        },
+        {
+          "name": "region",
+          "viewName": "Region",
+          "type": "autocomplete",
+          "autocompleteType": "function",
+          "functionName": "listRegionsAuto",
+          "description": "List services only from the specified region.",
+          "placeholder": "us-east1",
+          "learnUrl": "https://cloud.google.com/compute/docs/regions-zones"
+        }
+      ]
+    }
+  ]
+}
