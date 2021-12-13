@@ -222,7 +222,7 @@
               "name": "Allow all traffic"
             },
             {
-              "id": "internalAnd(Need to check!)",
+              "id": "internal-and-cloud-load-balancing",
               "name": "Allow internal and from load balancing"
             },
             {
