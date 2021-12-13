@@ -1,0 +1,15 @@
+{
+	"name": "kaholo-plugin-google-cloud-run",
+	"version": "1.0.0",
+	"description": "Kaholo plugin for integration with Google Cloud Run API.",
+	"main": "app.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"author": "Kaholo Group(Amit Alon)",
+	"license": "ISC",
+	"dependencies": {
+		"google-auth-library": "^7.10.3",
+		"googleapis": "^92.0.0"
+	}
+}
