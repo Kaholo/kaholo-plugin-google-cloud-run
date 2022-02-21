@@ -1,10 +1,29 @@
 const parsers = require("./parsers");
 const GoogleCloudRunService = require("./google.run.service");
+const { listServicesAuto } = require("./autocomplete");
+const { listProjectsAuto } = require("./autocomplete");
+const { listRegionsAuto } = require("./autocomplete");
+const { listServiceAccountsAuto } = require("./autocomplete");
 
 async function deployContainerService(action, settings) {
   const {
-    name, containerImageUrl, consistantCpuAllocation, minInstances, maxInstances, port, commands, args, memory, cpuCount,
-    timeout, maxConcurrency, execEnv, envVariables, serviceAccount, ingressRules, dontRequireAuthentication,
+    name,
+    containerImageUrl,
+    consistantCpuAllocation,
+    minInstances,
+    maxInstances,
+    port,
+    commands,
+    args,
+    memory,
+    cpuCount,
+    timeout,
+    maxConcurrency,
+    execEnv,
+    envVariables,
+    serviceAccount,
+    ingressRules,
+    dontRequireAuthentication,
   } = action.params;
 
   const client = GoogleCloudRunService.from(action.params, settings);
@@ -55,6 +74,8 @@ module.exports = {
   deleteService,
   describeService,
   listServices,
-  // Autocomplete Functions
-  ...require("./autocomplete"),
+  listServicesAuto,
+  listProjectsAuto,
+  listRegionsAuto,
+  listServiceAccountsAuto,
 };

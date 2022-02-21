@@ -1,14 +1,23 @@
 function removeUndefinedAndEmpty(obj) {
-  Object.entries(obj).forEach(([key, value]) => {
-    if (key === "auth") { return; }
-    if (value === undefined) { delete obj[key]; }
-    if (Array.isArray(value) && value.length === 0) { delete obj[key]; }
+  const objCopy = { ...obj };
+  Object.entries(objCopy).forEach(([key, value]) => {
+    if (key === "auth") {
+      return;
+    }
+    if (value === undefined) {
+      delete objCopy[key];
+    }
+    if (Array.isArray(value) && value.length === 0) {
+      delete objCopy[key];
+    }
     if (typeof (value) === "object") {
       removeUndefinedAndEmpty(value);
-      if (Object.keys(value).length === 0) { delete obj[key]; }
+      if (Object.keys(value).length === 0) {
+        delete objCopy[key];
+      }
     }
   });
-  return obj;
+  return objCopy;
 }
 
 module.exports = {

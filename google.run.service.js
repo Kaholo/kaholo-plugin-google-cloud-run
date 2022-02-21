@@ -10,7 +10,9 @@ const compute = google.compute("v1");
 
 module.exports = class GoogleCloudRunService {
   constructor({ creds, project, region }) {
-    if (!creds || !project) { throw "Must provide credentials, project and region for all requests!"; }
+    if (!creds || !project) {
+      throw new Error("Must provide credentials, project and region for all requests!");
+    }
     this.creds = creds;
     this.project = project;
     this.region = region;
@@ -38,11 +40,26 @@ module.exports = class GoogleCloudRunService {
   }
 
   async deployContainerService({
-    name, containerImageUrl, consistantCpuAllocation, minInstances, maxInstances, port, commands, args,
-    memory, cpuCount, timeout, maxConcurrency, execEnv, envVariables, serviceAccount, ingressRules, dontRequireAuthentication,
+    name,
+    containerImageUrl,
+    consistantCpuAllocation,
+    minInstances,
+    maxInstances,
+    port,
+    commands,
+    args,
+    memory,
+    cpuCount,
+    timeout,
+    maxConcurrency,
+    execEnv,
+    envVariables,
+    serviceAccount,
+    ingressRules,
+    dontRequireAuthentication,
   }) {
     if (!name || !containerImageUrl || !port || !this.region) {
-      throw "Didn't provide all required parameters.";
+      throw new Error("Didn't provide all required parameters.");
     }
     const result = {
       createService: (await runApi.projects.locations.services.create({
@@ -79,7 +96,10 @@ module.exports = class GoogleCloudRunService {
                   args: args.length ? args : undefined,
                   command: commands.length ? commands : undefined,
                   ports: [{ containerPort: port }],
-                  env: envVariables ? Object.entries(envVariables).map(([name, value]) => ({ name, value })) : undefined,
+                  env: envVariables ? Object.entries(envVariables).map(([_name, _value]) => ({
+                    name: _name,
+                    value: _value,
+                  })) : undefined,
                   resources: {
                     limits: {
                       cpu: `${cpuCount * 1000}m`,
@@ -113,7 +133,7 @@ module.exports = class GoogleCloudRunService {
         })).data;
       } catch (error) {
         await this.deleteService({ service: name });
-        throw `Error during setting Iam permissions for this service. error: ${error.message || JSON.stringify(error)}`;
+        throw new Error(`Error during setting Iam permissions for this service. error: ${error.message || JSON.stringify(error)}`);
       }
     }
     return result;
@@ -148,7 +168,7 @@ module.exports = class GoogleCloudRunService {
     return (await cloudresourcemanager.projects.list(request)).data.projects;
   }
 
-  async listRegions({}) {
+  async listRegions() {
     const request = removeUndefinedAndEmpty({
       auth: this.getAuthClient(),
       maxResults: 500,

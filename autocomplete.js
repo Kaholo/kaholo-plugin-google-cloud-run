@@ -13,15 +13,6 @@ function mapAutoParams(autoParams) {
   return params;
 }
 
-/** *
- * @returns {[{id, value}]} filtered result items
- ** */
-function handleResult(result, query, parseFunc) {
-  if (!parseFunc) { parseFunc = getParseFromParam("id", "name"); }
-  const items = result.map(parseFunc);
-  return filterItems(items, query);
-}
-
 function getAutoResult(id, value) {
   return {
     id: id || value,
@@ -30,45 +21,75 @@ function getAutoResult(id, value) {
 }
 
 function getParseFromParam(idParamName, valParamName) {
-  if (valParamName) { return (item) => getAutoResult(item[idParamName], item[valParamName]); }
+  if (valParamName) {
+    return (item) => getAutoResult(item[idParamName], item[valParamName]);
+  }
   return (item) => getAutoResult(item[idParamName]);
 }
 
 function filterItems(items, query) {
+  let itemsToReturn = [...items];
   if (query) {
     const qWords = query.split(/[. ]/g).map((word) => word.toLowerCase()); // split by '.' or ' ' and make lower case
-    items = items.filter((item) => qWords.every((word) => item.value.toLowerCase().includes(word)));
-    items = items.sort((word1, word2) => word1.value.toLowerCase().indexOf(qWords[0]) - word2.value.toLowerCase().indexOf(qWords[0]));
+    itemsToReturn = itemsToReturn.filter(
+      (item) => qWords.every((word) => item.value.toLowerCase().includes(word)),
+    ).sort(
+      (a, b) => a.value.toLowerCase().indexOf(qWords[0]) - b.value.toLowerCase().indexOf(qWords[0]),
+    );
   }
-  return items.splice(0, MAX_RESULTS);
+  return itemsToReturn.splice(0, MAX_RESULTS);
+}
+
+function handleResult(result, query, parseFunc) {
+  let parseFuncRef = parseFunc;
+  if (!parseFuncRef) {
+    parseFuncRef = getParseFromParam("id", "name");
+  }
+  const items = result.map(parseFuncRef);
+  return filterItems(items, query);
 }
 
 function listAuto(listFunc, fields, paging, noProject, parseFunc) {
-  if (!fields) { fields = ["id", "name"]; }
-  if (!parseFunc && fields) { parseFunc = getParseFromParam(...fields); }
+  let fieldsCopy;
+  let parseFuncRef = parseFunc;
+  if (!fields) {
+    fieldsCopy = ["id", "name"];
+  } else {
+    fieldsCopy = [...fields];
+  }
+  if (!parseFunc && fieldsCopy) {
+    parseFuncRef = getParseFromParam(...fieldsCopy);
+  }
   return async (query, pluginSettings, triggerParameters) => {
-    const settings = mapAutoParams(pluginSettings); const
+    const settings = mapAutoParams(pluginSettings);
+    const
       params = mapAutoParams(triggerParameters);
     const client = GoogleCloudRunService.from(params, settings, noProject);
     const items = [];
     let nextPageToken;
-    query = (query || "").trim();
-    params.query = query;
+    params.query = (query || "").trim();
     while (true) {
       try {
-        const result = await client[listFunc](params, fields, nextPageToken);
-        items.push(...handleResult(result.items || result, query, parseFunc));
-        if (!paging || !query || !result.nextPageToken || items.length >= MAX_RESULTS) { return items; }
+        // TODO: fix this >while (true)< loop
+        // eslint-disable-next-line no-await-in-loop
+        const result = await client[listFunc](params, fieldsCopy, nextPageToken);
+        items.push(...handleResult(result.items || result, query, parseFuncRef));
+        if (!paging || !query || !result.nextPageToken || items.length >= MAX_RESULTS) {
+          return items;
+        }
         const exactMatch = items.find((item) => item.value.toLowerCase() === query.toLowerCase()
-                                              || item.id.toLowerCase() === query.toLowerCase());
-        if (exactMatch) { return [exactMatch]; }
+                    || item.id.toLowerCase() === query.toLowerCase());
+        if (exactMatch) {
+          return [exactMatch];
+        }
         nextPageToken = result.nextPageToken;
       } catch (err) {
-        throw `Problem with '${listFunc}': ${err.message}`;
+        throw new Error(`Problem with '${listFunc}': ${err.message}`);
       }
     }
   };
 }
+
 module.exports = {
   listServicesAuto: listAuto("listServices", null, false, false, (service) => getAutoResult(service.metadata.name)),
   listProjectsAuto: listAuto("listProjects", ["projectId", "name"], false, true),
