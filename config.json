@@ -1,6 +1,5 @@
 {
-  "id": "gcp-run",
-  "name": "GCP Run",
+  "name": "Cloud-Run",
   "type": "executer",
   "exposeRoute": false,
   "execProgram": "node",
