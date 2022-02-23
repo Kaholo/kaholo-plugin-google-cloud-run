@@ -3,8 +3,6 @@ const GoogleCloudRunService = require("./google.run.service");
 
 // auto complete helper methods
 
-const MAX_RESULTS = 10;
-
 function mapAutoParams(autoParams) {
   const params = {};
   autoParams.forEach((param) => {
@@ -37,7 +35,7 @@ function filterItems(items, query) {
       (a, b) => a.value.toLowerCase().indexOf(qWords[0]) - b.value.toLowerCase().indexOf(qWords[0]),
     );
   }
-  return itemsToReturn.splice(0, MAX_RESULTS);
+  return itemsToReturn;
 }
 
 function handleResult(result, query, parseFunc) {
@@ -66,26 +64,20 @@ function listAuto(listFunc, fields, paging, noProject, parseFunc) {
       params = mapAutoParams(triggerParameters);
     const client = GoogleCloudRunService.from(params, settings, noProject);
     const items = [];
-    let nextPageToken;
     params.query = (query || "").trim();
-    while (true) {
-      try {
-        // TODO: fix this >while (true)< loop
-        // eslint-disable-next-line no-await-in-loop
-        const result = await client[listFunc](params, fieldsCopy, nextPageToken);
-        items.push(...handleResult(result.items || result, query, parseFuncRef));
-        if (!paging || !query || !result.nextPageToken || items.length >= MAX_RESULTS) {
-          return items;
-        }
+    try {
+      const result = await client[listFunc](params, fieldsCopy);
+      items.push(...handleResult(result.items || result, query, parseFuncRef));
+      if (query) {
         const exactMatch = items.find((item) => item.value.toLowerCase() === query.toLowerCase()
-                    || item.id.toLowerCase() === query.toLowerCase());
+            || item.id.toLowerCase() === query.toLowerCase());
         if (exactMatch) {
           return [exactMatch];
         }
-        nextPageToken = result.nextPageToken;
-      } catch (err) {
-        throw new Error(`Problem with '${listFunc}': ${err.message}`);
       }
+      return items;
+    } catch (err) {
+      throw new Error(`Problem with '${listFunc}': ${err.message}`);
     }
   };
 }
