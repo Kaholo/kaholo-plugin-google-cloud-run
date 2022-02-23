@@ -1,5 +1,6 @@
 {
   "name": "Cloud-Run",
+  "viewName": "Cloud Run",
   "type": "executer",
   "exposeRoute": false,
   "execProgram": "node",
