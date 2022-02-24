@@ -45,7 +45,8 @@
           "viewName": "Service Account Credentials",
           "type": "vault",
           "description": "Service account credentials.",
-          "learnUrl": "https://cloud.google.com/docs/authentication/production"
+          "learnUrl": "https://cloud.google.com/docs/authentication/production",
+          "required": true
         },
         {
           "name": "project",
@@ -55,7 +56,8 @@
           "functionName": "listProjectsAuto",
           "description": "Project name.",
           "placeholder": "project-name-username",
-          "learnUrl": "https://cloud.google.com/resource-manager/docs/creating-managing-projects"
+          "learnUrl": "https://cloud.google.com/resource-manager/docs/creating-managing-projects",
+          "required": true
         },
         {
           "name": "region",
@@ -65,7 +67,8 @@
           "functionName": "listRegionsAuto",
           "description": "Region name.",
           "placeholder": "us-east1",
-          "learnUrl": "https://cloud.google.com/compute/docs/regions-zones"
+          "learnUrl": "https://cloud.google.com/compute/docs/regions-zones",
+          "required": true
         },
         {
           "name": "name",
@@ -85,7 +88,7 @@
         },
         {
           "name": "consistantCpuAllocation",
-          "viewName": "Consistant CPU Allocation",
+          "viewName": "Consistent CPU Allocation",
           "type": "boolean",
           "description": "If it is true, the CPU for the container is always allocated. If it is false, the CPU is only allocated during request processing. Default value is false.",
           "learnUrl": "https://cloud.google.com/run/pricing"
@@ -100,19 +103,19 @@
         },
         {
           "name": "maxInstances",
-          "viewName": "Minimum Number Of Instances",
+          "viewName": "Maximum Number Of Instances",
           "type": "string",
-          "description": "Minimum Number Of Instances for autoscaling.",
+          "description": "Maximum Number Of Instances for autoscaling.",
           "placeholder": "100",
-          "learnUrl": "https://cloud.google.com/run/docs/configuring/min-instances"
+          "learnUrl": "https://cloud.google.com/run/docs/configuring/max-instances"
         },
         {
           "name": "port",
           "viewName": "Container Port",
           "type": "string",
-          "description": "Container port for the request.",
+          "description": "PORT env variable to pass to container",
           "placeholder": "8080",
-          "learnUrl": "https://github.com/Kaholo/kaholo-plugin-google-cloud-run"
+          "learnUrl": "https://cloud.google.com/run/docs/configuring/containers"
         },
         {
           "name": "commands",
@@ -120,23 +123,23 @@
           "type": "text",
           "description": "Command to run in the container upon entry.",
           "placeholder": "ls",
-          "learnUrl": "https://cloud.google.com/run/docs/tutorials/gcloud"
+          "learnUrl": "https://cloud.google.com/run/docs/configuring/containers"
         },
         {
           "name": "args",
           "viewName": "Container Arguments",
           "type": "text",
-          "description": "Arguments to pass on the container upon entry to the commands..",
+          "description": "Arguments to pass to the container upon entry to the commands..",
           "placeholder": "-d",
-          "learnUrl": "https://cloud.google.com/run/docs/tutorials/gcloud"
+          "learnUrl": "https://cloud.google.com/run/docs/configuring/containers"
         },
         {
           "name": "memory",
-          "viewName": "Container Memory(in MB)",
+          "viewName": "Container Memory",
           "type": "string",
-          "description": "Maximum number Of Instances for autoscaling.",
+          "description": "Container memory limit (in MB)",
           "placeholder": "512",
-          "learnUrl": "https://cloud.google.com/run/docs/configuring/max-instances"
+          "learnUrl": "https://cloud.google.com/run/docs/configuring/memory-limits"
         },
         {
           "name": "cpuCount",
@@ -162,7 +165,7 @@
         },
         {
           "name": "timeout",
-          "viewName": "Request Timeout(In seconds)",
+          "viewName": "Timeout",
           "type": "string",
           "description": "Time within which a response must be returned. Value must be between 1-3600. Default is 300.",
           "placeholder": "300",
@@ -170,7 +173,7 @@
         },
         {
           "name": "maxConcurrency",
-          "viewName": "Maximum Requests Per Container",
+          "viewName": "Max Concurrency",
           "type": "string",
           "description": "Maximum of concurrent requests per container.",
           "placeholder": "80",
@@ -238,7 +241,7 @@
           "name": "dontRequireAuthentication",
           "viewName": "Dont Require Authentication",
           "type": "boolean",
-          "description": "Allow free access or not to the container.",
+          "description": "Allow or disallow free access to the container.",
           "learnUrl": "https://cloud.google.com/run/docs/securing/managing-access"
         }
       ]

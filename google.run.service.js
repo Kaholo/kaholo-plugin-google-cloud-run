@@ -10,8 +10,8 @@ const compute = google.compute("v1");
 
 module.exports = class GoogleCloudRunService {
   constructor({ creds, project, region }) {
-    if (!creds || !project) {
-      throw new Error("Must provide credentials, project and region for all requests!");
+    if (!creds || !project || !region) {
+      throw new Error("Credentials, project and region are required!");
     }
     this.creds = creds;
     this.project = project;
