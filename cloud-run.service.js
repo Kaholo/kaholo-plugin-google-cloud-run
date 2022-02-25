@@ -58,7 +58,7 @@ module.exports = class GoogleCloudRunService {
     ingressRules,
     dontRequireAuthentication,
   }) {
-    if (!name || !containerImageUrl || !port || !this.region) {
+    if (!name || !containerImageUrl || !port) {
       throw new Error("Didn't provide all required parameters.");
     }
     const result = {

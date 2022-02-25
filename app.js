@@ -1,5 +1,5 @@
 const parsers = require("./parsers");
-const GoogleCloudRunService = require("./google.run.service");
+const GoogleCloudRunService = require("./cloud-run.service");
 const { listServicesAuto } = require("./autocomplete");
 const { listProjectsAuto } = require("./autocomplete");
 const { listRegionsAuto } = require("./autocomplete");

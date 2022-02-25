@@ -6,7 +6,7 @@
   "execProgram": "node",
   "main": "app.js",
   "imgUrl": "logo.png",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Kaholo plugin for integration with Google Cloud Run API.",
   "category": "CLOUD",
   "keywords": ["GCP", "kubernetes", "k8", "gke", "google", "run", "google", "platform", "vm", "instance", "cloud", "cluster", "project", "infra", "infrastructure", "cli", "network", "subnetwork", "firewall", "IP", "route", "storage"],
@@ -76,7 +76,8 @@
           "type": "string",
           "description": "Name of the new service.",
           "placeholder": "my-service",
-          "learnUrl": "https://cloud.google.com/compute/docs/instances/create-start-instance"
+          "learnUrl": "https://cloud.google.com/compute/docs/instances/create-start-instance",
+          "required": true
         },
         {
           "name": "containerImageUrl",
@@ -84,7 +85,49 @@
           "type": "string",
           "description": "URL of the container image.",
           "placeholder": "us-docker.pkg.dev/cloudrun/container/hello",
-          "learnUrl": "https://cloud.google.com/run/docs/deploying"
+          "learnUrl": "https://cloud.google.com/run/docs/deploying",
+          "required": true
+        },
+        {
+          "name": "port",
+          "viewName": "Container Port",
+          "type": "string",
+          "description": "PORT env variable to pass to container",
+          "placeholder": "8080",
+          "learnUrl": "https://cloud.google.com/run/docs/configuring/containers",
+          "required": true
+        },
+        {
+          "name": "memory",
+          "viewName": "Container Memory",
+          "type": "string",
+          "description": "Container memory limit (in MB)",
+          "placeholder": "512",
+          "learnUrl": "https://cloud.google.com/run/docs/configuring/memory-limits",
+          "required": true
+        },
+        {
+          "name": "cpuCount",
+          "viewName": "CPU Count",
+          "type": "options",
+          "description": "Number of allocated vCPU to each container instance.",
+          "placeholder": "1",
+          "learnUrl": "https://cloud.google.com/run/docs/configuring/cpu",
+          "options": [
+            {
+              "id": "1",
+              "name": "1"
+            },
+            {
+              "id": "2",
+              "name": "2"
+            },
+            {
+              "id": "4",
+              "name": "4"
+            }
+          ],
+          "required": true
         },
         {
           "name": "consistantCpuAllocation",
@@ -110,14 +153,6 @@
           "learnUrl": "https://cloud.google.com/run/docs/configuring/max-instances"
         },
         {
-          "name": "port",
-          "viewName": "Container Port",
-          "type": "string",
-          "description": "PORT env variable to pass to container",
-          "placeholder": "8080",
-          "learnUrl": "https://cloud.google.com/run/docs/configuring/containers"
-        },
-        {
           "name": "commands",
           "viewName": "Container Entry Commands",
           "type": "text",
@@ -132,36 +167,6 @@
           "description": "Arguments to pass to the container upon entry to the commands..",
           "placeholder": "-d",
           "learnUrl": "https://cloud.google.com/run/docs/configuring/containers"
-        },
-        {
-          "name": "memory",
-          "viewName": "Container Memory",
-          "type": "string",
-          "description": "Container memory limit (in MB)",
-          "placeholder": "512",
-          "learnUrl": "https://cloud.google.com/run/docs/configuring/memory-limits"
-        },
-        {
-          "name": "cpuCount",
-          "viewName": "CPU Count",
-          "type": "options",
-          "description": "Number of allocated vCPU to each container instance.",
-          "placeholder": "1",
-          "learnUrl": "https://cloud.google.com/run/docs/configuring/cpu",
-          "options": [
-            {
-              "id": "1",
-              "name": "1"
-            },
-            {
-              "id": "2",
-              "name": "2"
-            },
-            {
-              "id": "4",
-              "name": "4"
-            }
-          ]
         },
         {
           "name": "timeout",

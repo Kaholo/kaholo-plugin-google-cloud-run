@@ -1,5 +1,5 @@
 const parsers = require("./parsers");
-const GoogleCloudRunService = require("./google.run.service");
+const GoogleCloudRunService = require("./cloud-run.service");
 
 // auto complete helper methods
 
