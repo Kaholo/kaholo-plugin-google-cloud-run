@@ -25,9 +25,12 @@ async function deployContainerService(action, settings) {
     ingressRules,
     dontRequireAuthentication,
   } = action.params;
+  const { credentials, project, region } = GoogleCloudRunService.mergeInputs(action.params, settings);
 
-  const client = GoogleCloudRunService.from(action.params, settings);
-  return client.deployContainerService({
+  return GoogleCloudRunService.deployContainerService(
+      credentials,
+      project,
+      region, {
     name: parsers.string(name),
     containerImageUrl: parsers.string(containerImageUrl),
     consistantCpuAllocation: parsers.boolean(consistantCpuAllocation),
@@ -50,23 +53,30 @@ async function deployContainerService(action, settings) {
 
 async function deleteService(action, settings) {
   const { service } = action.params;
-  const client = GoogleCloudRunService.from(action.params, settings);
-  return client.deleteService({
-    service: parsers.autocomplete(service),
-  });
+  const { credentials, project, region } = GoogleCloudRunService.mergeInputs(action.params, settings);
+  return GoogleCloudRunService.deleteService(
+      { service: parsers.autocomplete(service) },
+      credentials,
+      project,
+      region
+  );
 }
 
 async function describeService(action, settings) {
   const { service } = action.params;
-  const client = GoogleCloudRunService.from(action.params, settings);
-  return client.describeService({
-    service: parsers.autocomplete(service),
-  });
+  const { credentials, project, region } = GoogleCloudRunService.mergeInputs(action.params, settings);
+  return GoogleCloudRunService.describeService(
+    { service: parsers.autocomplete(service) },
+    credentials,
+    project,
+    region
+  );
 }
 
 async function listServices(action, settings) {
-  const client = GoogleCloudRunService.from(action.params, settings);
-  return client.listServices({});
+  const { credentials, project, region } = GoogleCloudRunService.mergeInputs(action.params, settings);
+  const services = await GoogleCloudRunService.listServices(credentials, project, region)
+  return services;
 }
 
 module.exports = {

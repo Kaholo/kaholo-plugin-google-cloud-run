@@ -3,12 +3,78 @@ const GoogleCloudRunService = require("./cloud-run.service");
 
 // auto complete helper methods
 
-function mapAutoParams(autoParams) {
+function generateAutocompleter(
+    getResultFunc,
+    listingFunctionName,
+    parseFunc
+) {
+  return async (query, pluginSettings, triggerParameters) => {
+    const {
+      credentials,
+      project,
+      region
+    } = GoogleCloudRunService.mergeInputs(
+        mapToAutocompleteParams(triggerParameters),
+        mapToAutocompleteParams(pluginSettings)
+    );
+
+    try {
+      const result = await getResultFunc({
+        query,
+        credentials,
+        project,
+        region
+      });
+      return parseAndFilterResult(result, parseFunc, query);
+    } catch (err) {
+      throw new Error(`Autocompleter generation failed: ${err.message}`);
+    }
+  };
+}
+
+function mapToAutocompleteParams(autocompleteParams) {
   const params = {};
-  autoParams.forEach((param) => {
+  autocompleteParams.forEach((param) => {
     params[param.name] = parsers.autocomplete(param.value);
   });
   return params;
+}
+
+function parseAndFilterResult(result, parseFunc, query) {
+  let list = [];
+  const parsedItems = (result.list || result.items || result).map(parseFunc);
+  list = list.concat(filterItems(parsedItems, query));
+
+  if (query) {
+    const exactMatch = list.find(
+        (item) => item.value.toLowerCase() === query.toLowerCase()
+            || item.id.toLowerCase() === query.toLowerCase()
+    );
+    if (exactMatch) {
+      return [exactMatch];
+    }
+  }
+  return list;
+}
+
+function filterItems(items, query) {
+  let itemsToReturn = [...items];
+  if (query) {
+    const qWords = query.split(/[. ]/g).map((word) => word.toLowerCase()); // split by '.' or ' ' and make lower case
+    itemsToReturn = itemsToReturn.filter(
+        (item) => qWords.every((word) => item.value.toLowerCase().includes(word)),
+    ).sort(
+        (a, b) => a.value.toLowerCase().indexOf(qWords[0]) - b.value.toLowerCase().indexOf(qWords[0]),
+    );
+  }
+  return itemsToReturn;
+}
+
+function getParseFromParam(idParamName, valParamName) {
+  return (item) => getAutoResult(
+      item[idParamName],
+      valParamName ? item[valParamName] : null
+  );
 }
 
 function getAutoResult(id, value) {
@@ -18,73 +84,18 @@ function getAutoResult(id, value) {
   };
 }
 
-function getParseFromParam(idParamName, valParamName) {
-  if (valParamName) {
-    return (item) => getAutoResult(item[idParamName], item[valParamName]);
-  }
-  return (item) => getAutoResult(item[idParamName]);
-}
-
-function filterItems(items, query) {
-  let itemsToReturn = [...items];
-  if (query) {
-    const qWords = query.split(/[. ]/g).map((word) => word.toLowerCase()); // split by '.' or ' ' and make lower case
-    itemsToReturn = itemsToReturn.filter(
-      (item) => qWords.every((word) => item.value.toLowerCase().includes(word)),
-    ).sort(
-      (a, b) => a.value.toLowerCase().indexOf(qWords[0]) - b.value.toLowerCase().indexOf(qWords[0]),
-    );
-  }
-  return itemsToReturn;
-}
-
-function handleResult(result, query, parseFunc) {
-  let parseFuncRef = parseFunc;
-  if (!parseFuncRef) {
-    parseFuncRef = getParseFromParam("id", "name");
-  }
-  const items = result.map(parseFuncRef);
-  return filterItems(items, query);
-}
-
-function listAuto(listFunc, fields, paging, noProject, parseFunc) {
-  let fieldsCopy;
-  let parseFuncRef = parseFunc;
-  if (!fields) {
-    fieldsCopy = ["id", "name"];
-  } else {
-    fieldsCopy = [...fields];
-  }
-  if (!parseFunc && fieldsCopy) {
-    parseFuncRef = getParseFromParam(...fieldsCopy);
-  }
-  return async (query, pluginSettings, triggerParameters) => {
-    const settings = mapAutoParams(pluginSettings);
-    const
-      params = mapAutoParams(triggerParameters);
-    const client = GoogleCloudRunService.from(params, settings, noProject);
-    const items = [];
-    params.query = (query || "").trim();
-    try {
-      const result = await client[listFunc](params, fieldsCopy);
-      items.push(...handleResult(result.items || result, query, parseFuncRef));
-      if (query) {
-        const exactMatch = items.find((item) => item.value.toLowerCase() === query.toLowerCase()
-            || item.id.toLowerCase() === query.toLowerCase());
-        if (exactMatch) {
-          return [exactMatch];
-        }
-      }
-      return items;
-    } catch (err) {
-      throw new Error(`Problem with '${listFunc}': ${err.message}`);
-    }
-  };
-}
-
 module.exports = {
-  listServicesAuto: listAuto("listServices", null, false, false, (service) => getAutoResult(service.metadata.name)),
-  listProjectsAuto: listAuto("listProjects", ["projectId", "name"], false, true),
-  listRegionsAuto: listAuto("listRegions", ["name"]),
-  listServiceAccountsAuto: listAuto("listServiceAccounts", ["email", "displayName"]),
+  listServicesAuto: generateAutocompleter(
+      async ({ credentials, project, region }) => await GoogleCloudRunService.listServices(credentials, project, region),
+      (service) => getAutoResult(service.metadata.name)
+  ),
+  listProjectsAuto: generateAutocompleter(
+      async ({ query, credentials }) => await GoogleCloudRunService.listProjects({ query: (query || "").trim() }, credentials),
+      getParseFromParam("projectId", "name")),
+  listRegionsAuto: generateAutocompleter(
+      async ({ credentials, project }) => await GoogleCloudRunService.listRegions(credentials, project),
+      getParseFromParam("name")),
+  listServiceAccountsAuto: generateAutocompleter(
+      async ({ credentials, project }) => await GoogleCloudRunService.listServiceAccounts(credentials, project),
+      getParseFromParam("email", "displayName")),
 };
