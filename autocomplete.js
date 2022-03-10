@@ -4,18 +4,17 @@ const GoogleCloudRunService = require("./cloud-run.service");
 // auto complete helper methods
 
 function generateAutocompleter(
-    getResultFunc,
-    listingFunctionName,
-    parseFunc
+  getResultFunc,
+  parseFunc,
 ) {
   return async (query, pluginSettings, triggerParameters) => {
     const {
       credentials,
       project,
-      region
+      region,
     } = GoogleCloudRunService.mergeInputs(
-        mapToAutocompleteParams(triggerParameters),
-        mapToAutocompleteParams(pluginSettings)
+      mapToAutocompleteParams(triggerParameters),
+      mapToAutocompleteParams(pluginSettings),
     );
 
     try {
@@ -23,7 +22,7 @@ function generateAutocompleter(
         query,
         credentials,
         project,
-        region
+        region,
       });
       return parseAndFilterResult(result, parseFunc, query);
     } catch (err) {
@@ -47,8 +46,8 @@ function parseAndFilterResult(result, parseFunc, query) {
 
   if (query) {
     const exactMatch = list.find(
-        (item) => item.value.toLowerCase() === query.toLowerCase()
-            || item.id.toLowerCase() === query.toLowerCase()
+      (item) => (item.value.toLowerCase() === query.toLowerCase()
+            || item.id.toLowerCase() === query.toLowerCase()),
     );
     if (exactMatch) {
       return [exactMatch];
@@ -62,9 +61,9 @@ function filterItems(items, query) {
   if (query) {
     const qWords = query.split(/[. ]/g).map((word) => word.toLowerCase()); // split by '.' or ' ' and make lower case
     itemsToReturn = itemsToReturn.filter(
-        (item) => qWords.every((word) => item.value.toLowerCase().includes(word)),
+      (item) => qWords.every((word) => item.value.toLowerCase().includes(word)),
     ).sort(
-        (a, b) => a.value.toLowerCase().indexOf(qWords[0]) - b.value.toLowerCase().indexOf(qWords[0]),
+      (a, b) => a.value.toLowerCase().indexOf(qWords[0]) - b.value.toLowerCase().indexOf(qWords[0]),
     );
   }
   return itemsToReturn;
@@ -72,8 +71,8 @@ function filterItems(items, query) {
 
 function getParseFromParam(idParamName, valParamName) {
   return (item) => getAutoResult(
-      item[idParamName],
-      valParamName ? item[valParamName] : null
+    item[idParamName],
+    valParamName ? item[valParamName] : null,
   );
 }
 
@@ -86,16 +85,32 @@ function getAutoResult(id, value) {
 
 module.exports = {
   listServicesAuto: generateAutocompleter(
-      async ({ credentials, project, region }) => await GoogleCloudRunService.listServices(credentials, project, region),
-      (service) => getAutoResult(service.metadata.name)
+    ({
+      credentials,
+      project,
+      region,
+    }) => GoogleCloudRunService.listServices(credentials, project, region),
+    (service) => getAutoResult(service.metadata.name),
   ),
   listProjectsAuto: generateAutocompleter(
-      async ({ query, credentials }) => await GoogleCloudRunService.listProjects({ query: (query || "").trim() }, credentials),
-      getParseFromParam("projectId", "name")),
+    async ({
+      query,
+      credentials,
+    }) => GoogleCloudRunService.listProjects({ query: (query || "").trim() }, credentials),
+    getParseFromParam("projectId", "name"),
+  ),
   listRegionsAuto: generateAutocompleter(
-      async ({ credentials, project }) => await GoogleCloudRunService.listRegions(credentials, project),
-      getParseFromParam("name")),
+    async ({
+      credentials,
+      project,
+    }) => GoogleCloudRunService.listRegions(credentials, project),
+    getParseFromParam("name"),
+  ),
   listServiceAccountsAuto: generateAutocompleter(
-      async ({ credentials, project }) => await GoogleCloudRunService.listServiceAccounts(credentials, project),
-      getParseFromParam("email", "displayName")),
+    async ({
+      credentials,
+      project,
+    }) => GoogleCloudRunService.listServiceAccounts(credentials, project),
+    getParseFromParam("email", "displayName"),
+  ),
 };

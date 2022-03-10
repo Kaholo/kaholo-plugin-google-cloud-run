@@ -13,44 +13,45 @@ function mergeInputs(params, settings) {
     credentials: parsers.jsonString(params.creds || settings.creds),
     project: parsers.autocomplete(params.project) || parsers.string(settings.project),
     region: parsers.autocomplete(params.region) || parsers.string(settings.region),
-  }
+  };
 }
 
 function getAuthClient(credentials) {
   return new JWT(
-      credentials.client_email,
-      null,
-      credentials.private_key,
-      ["https://www.googleapis.com/auth/cloud-platform"],
+    credentials.client_email,
+    null,
+    credentials.private_key,
+    ["https://www.googleapis.com/auth/cloud-platform"],
   );
 }
 
-function getParent(project, region, service= "") {
+function getParent(project, region, service = "") {
   return `projects/${project}/locations/${region}${service && `/services/${service}`}`;
 }
 
 async function deployContainerService(
-    credentials,
-    project,
-    region, {
-      name,
-      containerImageUrl,
-      consistantCpuAllocation,
-      minInstances,
-      maxInstances,
-      port,
-      commands,
-      args,
-      memory,
-      cpuCount,
-      timeout,
-      maxConcurrency,
-      execEnv,
-      envVariables,
-      serviceAccount,
-      ingressRules,
-      dontRequireAuthentication,
-    }
+  credentials,
+  project,
+  region,
+  {
+    name,
+    containerImageUrl,
+    consistantCpuAllocation,
+    minInstances,
+    maxInstances,
+    port,
+    commands,
+    args,
+    memory,
+    cpuCount,
+    timeout,
+    maxConcurrency,
+    execEnv,
+    envVariables,
+    serviceAccount,
+    ingressRules,
+    dontRequireAuthentication,
+  },
 ) {
   if (!name || !containerImageUrl || !port) {
     throw new Error("Didn't provide all required parameters.");
