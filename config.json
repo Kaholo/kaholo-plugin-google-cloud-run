@@ -6,7 +6,7 @@
   "execProgram": "node",
   "main": "app.js",
   "imgUrl": "logo.png",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "Kaholo plugin for integration with Google Cloud Run API.",
   "category": "CLOUD",
   "keywords": ["GCP", "kubernetes", "k8", "gke", "google", "run", "google", "platform", "vm", "instance", "cloud", "cluster", "project", "infra", "infrastructure", "cli", "network", "subnetwork", "firewall", "IP", "route", "storage"],
@@ -45,7 +45,8 @@
           "viewName": "Service Account Credentials",
           "type": "vault",
           "description": "Service account credentials.",
-          "learnUrl": "https://cloud.google.com/docs/authentication/production"
+          "learnUrl": "https://cloud.google.com/docs/authentication/production",
+          "required": true
         },
         {
           "name": "project",
@@ -55,7 +56,8 @@
           "functionName": "listProjectsAuto",
           "description": "Project name.",
           "placeholder": "project-name-username",
-          "learnUrl": "https://cloud.google.com/resource-manager/docs/creating-managing-projects"
+          "learnUrl": "https://cloud.google.com/resource-manager/docs/creating-managing-projects",
+          "required": true
         },
         {
           "name": "region",
@@ -65,7 +67,8 @@
           "functionName": "listRegionsAuto",
           "description": "Region name.",
           "placeholder": "us-east1",
-          "learnUrl": "https://cloud.google.com/compute/docs/regions-zones"
+          "learnUrl": "https://cloud.google.com/compute/docs/regions-zones",
+          "required": true
         },
         {
           "name": "name",
@@ -73,70 +76,35 @@
           "type": "string",
           "description": "Name of the new service.",
           "placeholder": "my-service",
-          "learnUrl": "https://cloud.google.com/compute/docs/instances/create-start-instance"
+          "learnUrl": "https://cloud.google.com/compute/docs/instances/create-start-instance",
+          "required": true
         },
         {
           "name": "containerImageUrl",
-          "viewName": "Container Image URL",
+          "viewName": "Container image URL",
           "type": "string",
           "description": "URL of the container image.",
           "placeholder": "us-docker.pkg.dev/cloudrun/container/hello",
-          "learnUrl": "https://cloud.google.com/run/docs/deploying"
-        },
-        {
-          "name": "consistantCpuAllocation",
-          "viewName": "Consistant CPU Allocation",
-          "type": "boolean",
-          "description": "If it is true, the CPU for the container is always allocated. If it is false, the CPU is only allocated during request processing. Default value is false.",
-          "learnUrl": "https://cloud.google.com/run/pricing"
-        },
-        {
-          "name": "minInstances",
-          "viewName": "Minimum Number Of Instances",
-          "type": "string",
-          "description": "For autoscaling. Default is 0. Set to 1 to reduce cold starts.",
-          "placeholder": "0",
-          "learnUrl": "https://cloud.google.com/run/docs/configuring/min-instances"
-        },
-        {
-          "name": "maxInstances",
-          "viewName": "Minimum Number Of Instances",
-          "type": "string",
-          "description": "Minimum Number Of Instances for autoscaling.",
-          "placeholder": "100",
-          "learnUrl": "https://cloud.google.com/run/docs/configuring/min-instances"
+          "learnUrl": "https://cloud.google.com/run/docs/deploying",
+          "required": true
         },
         {
           "name": "port",
-          "viewName": "Container Port",
+          "viewName": "Container port",
           "type": "string",
-          "description": "Container port for the request.",
+          "description": "PORT env variable passed to the container",
           "placeholder": "8080",
-          "learnUrl": "https://github.com/Kaholo/kaholo-plugin-google-cloud-run"
-        },
-        {
-          "name": "commands",
-          "viewName": "Container Entry Commands",
-          "type": "text",
-          "description": "Command to run in the container upon entry.",
-          "placeholder": "ls",
-          "learnUrl": "https://cloud.google.com/run/docs/tutorials/gcloud"
-        },
-        {
-          "name": "args",
-          "viewName": "Container Arguments",
-          "type": "text",
-          "description": "Arguments to pass on the container upon entry to the commands..",
-          "placeholder": "-d",
-          "learnUrl": "https://cloud.google.com/run/docs/tutorials/gcloud"
+          "learnUrl": "https://cloud.google.com/run/docs/configuring/containers",
+          "required": true
         },
         {
           "name": "memory",
-          "viewName": "Container Memory(in MB)",
+          "viewName": "Container memory [MB]",
           "type": "string",
-          "description": "Maximum number Of Instances for autoscaling.",
+          "description": "Container's memory size limitation expressed in megabytes",
           "placeholder": "512",
-          "learnUrl": "https://cloud.google.com/run/docs/configuring/max-instances"
+          "learnUrl": "https://cloud.google.com/run/docs/configuring/memory-limits",
+          "required": true
         },
         {
           "name": "cpuCount",
@@ -158,11 +126,51 @@
               "id": "4",
               "name": "4"
             }
-          ]
+          ],
+          "required": true
+        },
+        {
+          "name": "consistantCpuAllocation",
+          "viewName": "Consistent CPU allocation",
+          "type": "boolean",
+          "description": "If it is true, the CPU for the container is always allocated. If it is false, the CPU is only allocated during request processing. Default value is false.",
+          "learnUrl": "https://cloud.google.com/run/pricing"
+        },
+        {
+          "name": "minInstances",
+          "viewName": "Min instances",
+          "type": "string",
+          "description": "Minimum number of autoscaling instances. Default is 0. Set to 1 to reduce cold starts.",
+          "placeholder": "0",
+          "learnUrl": "https://cloud.google.com/run/docs/configuring/min-instances"
+        },
+        {
+          "name": "maxInstances",
+          "viewName": "Max instances",
+          "type": "string",
+          "description": "Maximum number of autoscaling instances.",
+          "placeholder": "100",
+          "learnUrl": "https://cloud.google.com/run/docs/configuring/max-instances"
+        },
+        {
+          "name": "commands",
+          "viewName": "Container entry commands",
+          "type": "text",
+          "description": "Command to run in the container upon entry.",
+          "placeholder": "ls",
+          "learnUrl": "https://cloud.google.com/run/docs/configuring/containers"
+        },
+        {
+          "name": "args",
+          "viewName": "Container arguments",
+          "type": "text",
+          "description": "Arguments to pass to the container upon entry to the commands.",
+          "placeholder": "-d",
+          "learnUrl": "https://cloud.google.com/run/docs/configuring/containers"
         },
         {
           "name": "timeout",
-          "viewName": "Request Timeout(In seconds)",
+          "viewName": "Timeout [s]",
           "type": "string",
           "description": "Time within which a response must be returned. Value must be between 1-3600. Default is 300.",
           "placeholder": "300",
@@ -170,7 +178,7 @@
         },
         {
           "name": "maxConcurrency",
-          "viewName": "Maximum Requests Per Container",
+          "viewName": "Max Concurrency",
           "type": "string",
           "description": "Maximum of concurrent requests per container.",
           "placeholder": "80",
@@ -236,9 +244,9 @@
         },
         {
           "name": "dontRequireAuthentication",
-          "viewName": "Dont Require Authentication",
+          "viewName": "Don't Require Authentication",
           "type": "boolean",
-          "description": "Allow free access or not to the container.",
+          "description": "Allow or disallow free access to the container.",
           "learnUrl": "https://cloud.google.com/run/docs/securing/managing-access"
         }
       ]
@@ -262,7 +270,8 @@
           "functionName": "listProjectsAuto",
           "description": "Project name.",
           "placeholder": "project-name-username",
-          "learnUrl": "https://cloud.google.com/resource-manager/docs/creating-managing-projects"
+          "learnUrl": "https://cloud.google.com/resource-manager/docs/creating-managing-projects",
+          "required": true
         },
         {
           "name": "region",
@@ -272,7 +281,8 @@
           "functionName": "listRegionsAuto",
           "description": "Region name.",
           "placeholder": "us-east1",
-          "learnUrl": "https://cloud.google.com/compute/docs/regions-zones"
+          "learnUrl": "https://cloud.google.com/compute/docs/regions-zones",
+          "required": true
         },
         {
           "name": "service",
@@ -282,7 +292,8 @@
           "functionName": "listServicesAuto",
           "description": "Name of the service to delete.",
           "placeholder": "my-service",
-          "learnUrl": "https://cloud.google.com/run/docs/managing/services"
+          "learnUrl": "https://cloud.google.com/run/docs/managing/services",
+          "required": true
         }
       ]
     },
@@ -305,7 +316,8 @@
           "functionName": "listProjectsAuto",
           "description": "Project name.",
           "placeholder": "project-name-username",
-          "learnUrl": "https://cloud.google.com/resource-manager/docs/creating-managing-projects"
+          "learnUrl": "https://cloud.google.com/resource-manager/docs/creating-managing-projects",
+          "required": true
         },
         {
           "name": "region",
@@ -315,7 +327,8 @@
           "functionName": "listRegionsAuto",
           "description": "Region name.",
           "placeholder": "us-east1",
-          "learnUrl": "https://cloud.google.com/compute/docs/regions-zones"
+          "learnUrl": "https://cloud.google.com/compute/docs/regions-zones",
+          "required": true
         },
         {
           "name": "service",
@@ -325,7 +338,8 @@
           "functionName": "listServicesAuto",
           "description": "Name of the service to describe.",
           "placeholder": "my-service",
-          "learnUrl": "https://cloud.google.com/run/docs/managing/services"
+          "learnUrl": "https://cloud.google.com/run/docs/managing/services",
+          "required": true
         }
       ]
     },
@@ -338,7 +352,8 @@
           "viewName": "Service Account Credentials",
           "type": "vault",
           "description": "Service account credentials.",
-          "learnUrl": "https://cloud.google.com/docs/authentication/production"
+          "learnUrl": "https://cloud.google.com/docs/authentication/production",
+          "required": true
         },
         {
           "name": "project",
@@ -348,7 +363,8 @@
           "functionName": "listProjectsAuto",
           "description": "Project name.",
           "placeholder": "project-name-username",
-          "learnUrl": "https://cloud.google.com/resource-manager/docs/creating-managing-projects"
+          "learnUrl": "https://cloud.google.com/resource-manager/docs/creating-managing-projects",
+          "required": true
         },
         {
           "name": "region",
@@ -358,7 +374,8 @@
           "functionName": "listRegionsAuto",
           "description": "List services only from the specified region.",
           "placeholder": "us-east1",
-          "learnUrl": "https://cloud.google.com/compute/docs/regions-zones"
+          "learnUrl": "https://cloud.google.com/compute/docs/regions-zones",
+          "required": true
         }
       ]
     }

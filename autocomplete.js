@@ -1,30 +1,59 @@
 const parsers = require("./parsers");
-const GoogleCloudRunService = require("./google.run.service");
+const GoogleCloudRunService = require("./cloud-run.service");
 
 // auto complete helper methods
 
-const MAX_RESULTS = 10;
+function generateAutocompleter(
+  getResultFunc,
+  parseFunc,
+) {
+  return async (query, pluginSettings, triggerParameters) => {
+    const {
+      credentials,
+      project,
+      region,
+    } = GoogleCloudRunService.mergeInputs(
+      mapToAutocompleteParams(triggerParameters),
+      mapToAutocompleteParams(pluginSettings),
+    );
 
-function mapAutoParams(autoParams) {
+    try {
+      const result = await getResultFunc({
+        query,
+        credentials,
+        project,
+        region,
+      });
+      return parseAndFilterResult(result, parseFunc, query);
+    } catch (err) {
+      throw new Error(`Autocompleter generation failed: ${err.message}`);
+    }
+  };
+}
+
+function mapToAutocompleteParams(autocompleteParams) {
   const params = {};
-  autoParams.forEach((param) => {
+  autocompleteParams.forEach((param) => {
     params[param.name] = parsers.autocomplete(param.value);
   });
   return params;
 }
 
-function getAutoResult(id, value) {
-  return {
-    id: id || value,
-    value: value || id,
-  };
-}
+function parseAndFilterResult(result, parseFunc, query) {
+  let list = [];
+  const parsedItems = (result.list || result.items || result).map(parseFunc);
+  list = list.concat(filterItems(parsedItems, query));
 
-function getParseFromParam(idParamName, valParamName) {
-  if (valParamName) {
-    return (item) => getAutoResult(item[idParamName], item[valParamName]);
+  if (query) {
+    const exactMatch = list.find(
+      (item) => (item.value.toLowerCase() === query.toLowerCase()
+            || item.id.toLowerCase() === query.toLowerCase()),
+    );
+    if (exactMatch) {
+      return [exactMatch];
+    }
   }
-  return (item) => getAutoResult(item[idParamName]);
+  return list;
 }
 
 function filterItems(items, query) {
@@ -37,62 +66,51 @@ function filterItems(items, query) {
       (a, b) => a.value.toLowerCase().indexOf(qWords[0]) - b.value.toLowerCase().indexOf(qWords[0]),
     );
   }
-  return itemsToReturn.splice(0, MAX_RESULTS);
+  return itemsToReturn;
 }
 
-function handleResult(result, query, parseFunc) {
-  let parseFuncRef = parseFunc;
-  if (!parseFuncRef) {
-    parseFuncRef = getParseFromParam("id", "name");
-  }
-  const items = result.map(parseFuncRef);
-  return filterItems(items, query);
+function getParseFromParam(idParamName, valParamName) {
+  return (item) => getAutoResult(
+    item[idParamName],
+    valParamName ? item[valParamName] : null,
+  );
 }
 
-function listAuto(listFunc, fields, paging, noProject, parseFunc) {
-  let fieldsCopy;
-  let parseFuncRef = parseFunc;
-  if (!fields) {
-    fieldsCopy = ["id", "name"];
-  } else {
-    fieldsCopy = [...fields];
-  }
-  if (!parseFunc && fieldsCopy) {
-    parseFuncRef = getParseFromParam(...fieldsCopy);
-  }
-  return async (query, pluginSettings, triggerParameters) => {
-    const settings = mapAutoParams(pluginSettings);
-    const
-      params = mapAutoParams(triggerParameters);
-    const client = GoogleCloudRunService.from(params, settings, noProject);
-    const items = [];
-    let nextPageToken;
-    params.query = (query || "").trim();
-    while (true) {
-      try {
-        // TODO: fix this >while (true)< loop
-        // eslint-disable-next-line no-await-in-loop
-        const result = await client[listFunc](params, fieldsCopy, nextPageToken);
-        items.push(...handleResult(result.items || result, query, parseFuncRef));
-        if (!paging || !query || !result.nextPageToken || items.length >= MAX_RESULTS) {
-          return items;
-        }
-        const exactMatch = items.find((item) => item.value.toLowerCase() === query.toLowerCase()
-                    || item.id.toLowerCase() === query.toLowerCase());
-        if (exactMatch) {
-          return [exactMatch];
-        }
-        nextPageToken = result.nextPageToken;
-      } catch (err) {
-        throw new Error(`Problem with '${listFunc}': ${err.message}`);
-      }
-    }
+function getAutoResult(id, value) {
+  return {
+    id: id || value,
+    value: value || id,
   };
 }
 
 module.exports = {
-  listServicesAuto: listAuto("listServices", null, false, false, (service) => getAutoResult(service.metadata.name)),
-  listProjectsAuto: listAuto("listProjects", ["projectId", "name"], false, true),
-  listRegionsAuto: listAuto("listRegions", ["name"]),
-  listServiceAccountsAuto: listAuto("listServiceAccounts", ["email", "displayName"]),
+  listServicesAuto: generateAutocompleter(
+    ({
+      credentials,
+      project,
+      region,
+    }) => GoogleCloudRunService.listServices(credentials, project, region),
+    (service) => getAutoResult(service.metadata.name),
+  ),
+  listProjectsAuto: generateAutocompleter(
+    async ({
+      query,
+      credentials,
+    }) => GoogleCloudRunService.listProjects({ query: (query || "").trim() }, credentials),
+    getParseFromParam("projectId", "name"),
+  ),
+  listRegionsAuto: generateAutocompleter(
+    async ({
+      credentials,
+      project,
+    }) => GoogleCloudRunService.listRegions(credentials, project),
+    getParseFromParam("name"),
+  ),
+  listServiceAccountsAuto: generateAutocompleter(
+    async ({
+      credentials,
+      project,
+    }) => GoogleCloudRunService.listServiceAccounts(credentials, project),
+    getParseFromParam("email", "displayName"),
+  ),
 };
